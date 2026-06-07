@@ -1,26 +1,539 @@
 @import "tailwindcss";
 
+/* ============================================
+   DESIGN TOKENS — based on DESIGN.md
+   Nike-inspired: black/white/soft-cloud palette
+   Pill-shaped CTAs, flat cards, 8px spacing
+   ============================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand Palette */
+  --ink: #111111;
+  --canvas: #ffffff;
+  --soft-cloud: #f5f5f5;
+  --hairline: #cacacb;
+  --hairline-soft: #e5e5e5;
+
+  /* Text */
+  --charcoal: #39393b;
+  --ash: #4b4b4d;
+  --mute: #707072;
+  --stone: #9e9ea0;
+
+  /* Semantic */
+  --sale: #d30005;
+  --sale-deep: #780700;
+  --success: #007d48;
+  --success-bright: #1eaa52;
+  --info: #1151ff;
+  --info-deep: #0034e3;
+  --warning: #b45309;
+  --warning-bg: #fef3c7;
+
+  /* Radius — pill geometry */
+  --radius-none: 0px;
+  --radius-sm: 18px;
+  --radius-md: 24px;
+  --radius-lg: 30px;
+  --radius-full: 9999px;
+
+  /* Spacing — 8px base */
+  --spacing-xxs: 2px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 18px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 30px;
+  --spacing-section: 48px;
+
+  /* Sidebar width */
+  --sidebar-width: 260px;
+  --topbar-height: 64px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Map to Tailwind color utilities */
+  --color-ink: var(--ink);
+  --color-canvas: var(--canvas);
+  --color-soft-cloud: var(--soft-cloud);
+  --color-hairline: var(--hairline);
+  --color-hairline-soft: var(--hairline-soft);
+  --color-charcoal: var(--charcoal);
+  --color-ash: var(--ash);
+  --color-mute: var(--mute);
+  --color-stone: var(--stone);
+  --color-sale: var(--sale);
+  --color-sale-deep: var(--sale-deep);
+  --color-success: var(--success);
+  --color-success-bright: var(--success-bright);
+  --color-info: var(--info);
+  --color-info-deep: var(--info-deep);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+
+  /* Font */
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+
+  /* Border radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ============================================
+   BASE STYLES
+   ============================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--soft-cloud);
+  color: var(--ink);
+  font-family:
+    var(--font-inter),
+    system-ui,
+    -apple-system,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ============================================
+   SCROLLBAR — minimal, hairline style
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--soft-cloud);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ash);
+}
+
+/* ============================================
+   FOCUS — ink ring, no box-shadow elevation
+   ============================================ */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   TYPOGRAPHY SCALE — following DESIGN.md
+   ============================================ */
+.text-display {
+  font-size: 96px;
+  font-weight: 500;
+  line-height: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.text-heading-xl {
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.text-heading-lg {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.text-heading-md {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.75;
+}
+
+.text-body-md {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.text-body-strong {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.text-caption-md {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.text-caption-sm {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.text-utility-xs {
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.75;
+}
+
+/* ============================================
+   BUTTON SYSTEM — pill geometry, DESIGN.md §Buttons
+   ============================================ */
+
+/* Primary: ink bg, canvas text, pill */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 32px;
+  background-color: var(--ink);
+  color: var(--canvas);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: var(--radius-lg);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-primary:hover {
+  opacity: 0.85;
+}
+.btn-primary:active {
+  opacity: 0.7;
+  transform: scale(0.98);
+}
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Secondary: soft-cloud bg, ink text, pill */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 32px;
+  background-color: var(--soft-cloud);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: var(--radius-lg);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-secondary:hover {
+  background-color: var(--hairline-soft);
+}
+.btn-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Danger: sale red bg, canvas text, pill */
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 32px;
+  background-color: var(--sale);
+  color: var(--canvas);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: var(--radius-lg);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-danger:hover {
+  opacity: 0.85;
+}
+.btn-danger:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Ghost: transparent, hairline border, pill */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  background-color: transparent;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--hairline);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-ghost:hover {
+  background-color: var(--soft-cloud);
+}
+
+/* Small variant */
+.btn-sm {
+  height: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+/* Icon circular button */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: var(--soft-cloud);
+  color: var(--ink);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  flex-shrink: 0;
+}
+.btn-icon:hover {
+  background-color: var(--hairline-soft);
+}
+
+/* ============================================
+   CARD — flat, no shadow (DESIGN.md §Elevation)
+   ============================================ */
+.card {
+  background-color: var(--canvas);
+  border-radius: 0;
+  /* No shadow — per design system */
+}
+
+.card-bordered {
+  background-color: var(--canvas);
+  border: 1px solid var(--hairline-soft);
+}
+
+/* ============================================
+   BADGE — pill geometry for status chips
+   ============================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.badge-default {
+  background-color: var(--soft-cloud);
+  color: var(--ink);
+}
+
+.badge-success {
+  background-color: #dcfce7;
+  color: var(--success);
+}
+
+.badge-danger {
+  background-color: #fee2e2;
+  color: var(--sale);
+}
+
+.badge-info {
+  background-color: #dbeafe;
+  color: var(--info);
+}
+
+.badge-warning {
+  background-color: var(--warning-bg);
+  color: var(--warning);
+}
+
+/* ============================================
+   INPUT — rounded-md (24px), hairline border
+   ============================================ */
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  background-color: var(--canvas);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 400;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.input::placeholder {
+  color: var(--stone);
+}
+.input:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+}
+
+.input-sm {
+  height: 40px;
+  font-size: 14px;
+}
+
+/* ============================================
+   TABLE — hairline borders, flat rows
+   ============================================ */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mute);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--hairline);
+  background-color: var(--canvas);
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--ink);
+  border-bottom: 1px solid var(--hairline-soft);
+  vertical-align: middle;
+}
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+.data-table tr:hover td {
+  background-color: var(--soft-cloud);
+}
+
+/* ============================================
+   FILTER CHIP — active = ink inverted
+   ============================================ */
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  background-color: var(--canvas);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.filter-chip-active {
+  background-color: var(--ink);
+  color: var(--canvas);
+  border-color: var(--ink);
+}
+
+/* ============================================
+   SIDEBAR NAV ITEM
+   ============================================ */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: var(--mute);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 0;
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+  cursor: pointer;
+}
+.nav-item:hover {
+  color: var(--ink);
+  background-color: var(--soft-cloud);
+}
+.nav-item-active {
+  color: var(--ink);
+  background-color: var(--soft-cloud);
+  border-left: 2px solid var(--ink);
+}
+.nav-group-label {
+  padding: 16px 16px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--stone);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ============================================
+   DIVIDER — hairline
+   ============================================ */
+.divider {
+  height: 1px;
+  background-color: var(--hairline-soft);
+  margin: 0;
+  border: none;
+}
+
+/* ============================================
+   PAGE TRANSITIONS
+   ============================================ */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.2s ease forwards;
 }

@@ -1,0 +1,333 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  STAFF
+  VIEWER
+}
+
+enum StockInStatus {
+  PENDING
+  RECEIVING
+  QC
+  PUTAWAY
+  DONE
+}
+
+enum OrderStatus {
+  DRAFT
+  CONFIRMED
+  PICKING
+  PACKING
+  READY
+  SHIPPED
+}
+
+enum ShipmentStatus {
+  READY
+  DEPARTED
+  IN_TRANSIT
+  DELIVERED
+}
+
+enum MovementType {
+  IN
+  OUT
+  TRANSFER
+  ADJUSTMENT
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(STAFF)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  pickingTasks  PickingTask[]
+  packingTasks  PackingTask[]
+  qualityChecks QualityCheck[]
+  stockMovements StockMovement[]
+  auditLogs     AuditLog[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Supplier {
+  id        String   @id @default(cuid())
+  name      String
+  contact   String?
+  address   String?
+  email     String?
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stockIns StockIn[]
+
+  @@index([name])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  sku         String   @unique
+  name        String
+  category    String
+  unit        String
+  description String?
+  imageUrl    String?
+  minStock    Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stockIns       StockIn[]
+  inventories    Inventory[]
+  stockMovements StockMovement[]
+  orderItems     OrderItem[]
+
+  @@index([sku])
+  @@index([category])
+  @@index([name])
+}
+
+model StockIn {
+  id         String        @id @default(cuid())
+  productId  String
+  supplierId String
+  quantity   Int
+  unitCost   Float
+  invoiceNo  String?
+  status     StockInStatus @default(PENDING)
+  notes      String?
+  receivedAt DateTime      @default(now())
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  product       Product       @relation(fields: [productId], references: [id])
+  supplier      Supplier      @relation(fields: [supplierId], references: [id])
+  qualityChecks QualityCheck[]
+
+  @@index([productId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([receivedAt])
+}
+
+model QualityCheck {
+  id          String   @id @default(cuid())
+  stockInId   String
+  passedQty   Int
+  rejectedQty Int
+  notes       String?
+  imageUrls   String[]
+  checkedById String
+  checkedAt   DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  stockIn   StockIn @relation(fields: [stockInId], references: [id])
+  checkedBy User    @relation(fields: [checkedById], references: [id])
+
+  @@index([stockInId])
+  @@index([checkedAt])
+}
+
+model Location {
+  id       String  @id @default(cuid())
+  code     String  @unique
+  zone     String
+  row      String
+  shelf    String
+  capacity Int
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  inventories    Inventory[]
+  fromMovements  StockMovement[] @relation("FromLocation")
+  toMovements    StockMovement[] @relation("ToLocation")
+
+  @@index([zone])
+  @@index([code])
+}
+
+model Inventory {
+  id         String   @id @default(cuid())
+  productId  String
+  locationId String
+  quantity   Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  product  Product  @relation(fields: [productId], references: [id])
+  location Location @relation(fields: [locationId], references: [id])
+
+  @@unique([productId, locationId])
+  @@index([productId])
+  @@index([locationId])
+}
+
+model StockMovement {
+  id             String       @id @default(cuid())
+  productId      String
+  fromLocationId String?
+  toLocationId   String?
+  quantity       Int
+  type           MovementType
+  notes          String?
+  movedById      String
+  movedAt        DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+
+  product      Product   @relation(fields: [productId], references: [id])
+  fromLocation Location? @relation("FromLocation", fields: [fromLocationId], references: [id])
+  toLocation   Location? @relation("ToLocation", fields: [toLocationId], references: [id])
+  movedBy      User      @relation(fields: [movedById], references: [id])
+
+  @@index([productId])
+  @@index([movedAt])
+  @@index([type])
+}
+
+model Store {
+  id            String   @id @default(cuid())
+  name          String
+  address       String
+  city          String
+  contactPerson String?
+  phone         String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orders    Order[]
+  shipments Shipment[]
+
+  @@index([name])
+  @@index([city])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNo         String      @unique
+  storeId         String
+  status          OrderStatus @default(DRAFT)
+  priority        String      @default("NORMAL")
+  notes           String?
+  scheduledShipAt DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  store       Store        @relation(fields: [storeId], references: [id])
+  items       OrderItem[]
+  pickingTask PickingTask?
+  packingTask PackingTask?
+  shipment    Shipment?
+
+  @@index([storeId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id           String  @id @default(cuid())
+  orderId      String
+  productId    String
+  requestedQty Int
+  pickedQty    Int     @default(0)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([orderId, productId])
+  @@index([orderId])
+  @@index([productId])
+}
+
+model PickingTask {
+  id          String    @id @default(cuid())
+  orderId     String    @unique
+  assignedToId String?
+  status      String    @default("PENDING")
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  order      Order @relation(fields: [orderId], references: [id])
+  assignedTo User? @relation(fields: [assignedToId], references: [id])
+
+  @@index([status])
+}
+
+model PackingTask {
+  id           String    @id @default(cuid())
+  orderId      String    @unique
+  assignedToId String?
+  weight       Float?
+  boxCount     Int?
+  notes        String?
+  status       String    @default("PENDING")
+  packedAt     DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  order      Order @relation(fields: [orderId], references: [id])
+  assignedTo User? @relation(fields: [assignedToId], references: [id])
+
+  @@index([status])
+}
+
+model Shipment {
+  id                String         @id @default(cuid())
+  orderId           String         @unique
+  storeId           String
+  vehicleNo         String?
+  driverName        String?
+  status            ShipmentStatus @default(READY)
+  departedAt        DateTime?
+  estimatedArrival  DateTime?
+  deliveredAt       DateTime?
+  notes             String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+  store Store @relation(fields: [storeId], references: [id])
+
+  @@index([storeId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  entity    String
+  entityId  String
+  detail    String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entity])
+  @@index([createdAt])
+}
