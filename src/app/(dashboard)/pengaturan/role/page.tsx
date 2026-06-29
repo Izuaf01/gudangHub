@@ -100,9 +100,14 @@ export default function AksesRolePage() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-hairline-soft">
-                  <th className="text-left py-2 pr-4 font-medium text-ink">Modul</th>
+                  <th className="text-left py-2 pr-4 font-medium text-ink">
+                    Modul
+                  </th>
                   {ROLES.map((r) => (
-                    <th key={r.name} className="py-2 px-3 font-medium text-ink text-center">
+                    <th
+                      key={r.name}
+                      className="py-2 px-3 font-medium text-ink text-center"
+                    >
                       {r.label}
                     </th>
                   ))}
@@ -114,7 +119,10 @@ export default function AksesRolePage() {
                   { module: "Produk", perms: ["RW", "RW", "R", "R"] },
                   { module: "Supplier", perms: ["RW", "RW", "R", "R"] },
                   { module: "Lokasi Gudang", perms: ["RW", "RW", "R", "R"] },
-                  { module: "Penerimaan Barang", perms: ["RW", "RW", "RW", "R"] },
+                  {
+                    module: "Penerimaan Barang",
+                    perms: ["RW", "RW", "RW", "R"],
+                  },
                   { module: "Quality Control", perms: ["RW", "RW", "RW", "R"] },
                   { module: "Inventaris", perms: ["RW", "RW", "R", "R"] },
                   { module: "Pesanan", perms: ["RW", "RW", "R", "R"] },
@@ -130,7 +138,9 @@ export default function AksesRolePage() {
                     {row.perms.map((perm, i) => (
                       <td key={i} className="py-2 px-3 text-center">
                         {perm === "RW" ? (
-                          <span className="text-success font-medium">Baca + Tulis</span>
+                          <span className="text-success font-medium">
+                            Baca + Tulis
+                          </span>
                         ) : perm === "R" ? (
                           <span className="text-info">Baca</span>
                         ) : (

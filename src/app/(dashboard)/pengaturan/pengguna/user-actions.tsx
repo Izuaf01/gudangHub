@@ -51,7 +51,9 @@ export function UserActions({
         const err = await res.json();
         throw new Error(err.error ?? "Gagal mengubah status");
       }
-      toast.success(isActive ? "Pengguna dinonaktifkan" : "Pengguna diaktifkan");
+      toast.success(
+        isActive ? "Pengguna dinonaktifkan" : "Pengguna diaktifkan",
+      );
       setConfirmOpen(false);
       router.refresh();
     } catch (err) {

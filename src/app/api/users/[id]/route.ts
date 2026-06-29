@@ -8,24 +8,37 @@ type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(_req: NextRequest, ctx: Ctx) {
   const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await ctx.params;
   const user = await prisma.user.findUnique({
     where: { id },
-    select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+    },
   });
-  if (!user) return NextResponse.json({ error: "Tidak ditemukan" }, { status: 404 });
+  if (!user)
+    return NextResponse.json({ error: "Tidak ditemukan" }, { status: 404 });
   return NextResponse.json(user);
 }
 
 export async function PATCH(req: NextRequest, ctx: Ctx) {
   const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const sessionRole = (session.user as unknown as { role: string }).role;
   if (sessionRole !== "ADMIN") {
-    return NextResponse.json({ error: "Hanya ADMIN yang dapat mengubah pengguna" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Hanya ADMIN yang dapat mengubah pengguna" },
+      { status: 403 },
+    );
   }
 
   const { id } = await ctx.params;
@@ -36,7 +49,14 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     const updated = await prisma.user.update({
       where: { id },
       data: { isActive: body.isActive },
-      select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      },
     });
     return NextResponse.json(updated);
   }
@@ -56,7 +76,10 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     where: { email, NOT: { id } },
   });
   if (conflict) {
-    return NextResponse.json({ error: "Email sudah digunakan" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Email sudah digunakan" },
+      { status: 400 },
+    );
   }
 
   const data: Record<string, unknown> = { name, email, role };
@@ -67,7 +90,14 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   const updated = await prisma.user.update({
     where: { id },
     data,
-    select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+    },
   });
 
   return NextResponse.json(updated);

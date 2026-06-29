@@ -6,7 +6,8 @@ import bcrypt from "bcryptjs";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const search = searchParams.get("search") ?? "";
@@ -38,11 +39,15 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const role = (session.user as unknown as { role: string }).role;
   if (role !== "ADMIN") {
-    return NextResponse.json({ error: "Hanya ADMIN yang dapat membuat pengguna" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Hanya ADMIN yang dapat membuat pengguna" },
+      { status: 403 },
+    );
   }
 
   const body = await req.json();
@@ -58,14 +63,24 @@ export async function POST(req: NextRequest) {
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    return NextResponse.json({ error: "Email sudah digunakan" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Email sudah digunakan" },
+      { status: 400 },
+    );
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
 
   const user = await prisma.user.create({
     data: { name, email, passwordHash, role: userRole },
-    select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+    },
   });
 
   return NextResponse.json(user, { status: 201 });
